@@ -89,7 +89,7 @@ const CountdownClock = () => {
                     Execute decom protocol alpha...
                 </div>
                 <div className={`text-white text-sm ${endingPhase === 3 ? 'opacity-100' : 'opacity-0'} transition-opacity duration-1000 absolute`}>
-                    Goodbye Chris...
+                    Goodbye Ben...
                 </div>
             </div>
         );
@@ -101,7 +101,7 @@ const CountdownClock = () => {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-black text-neon-green font-mono p-4">
-            <div className="text-xl sm:text-2xl mb-8">Chris...</div>
+            <div className="text-xl sm:text-2xl mb-8">Ben...</div>
             <div className={`text-4xl sm:text-5xl md:text-6xl font-bold mb-8 flex flex-wrap justify-center ${isShaking ? 'animate-shake' : ''}`}>
                 {timeUnits.map((unit) => (
                     <div key={unit} className="flex flex-col items-center m-2">
