@@ -101,6 +101,7 @@ const CountdownClock = () => {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-black text-neon-green font-mono p-4">
+            <div className="text-xl sm:text-2xl mb-8">Chris...</div>
             <div className={`text-4xl sm:text-5xl md:text-6xl font-bold mb-8 flex flex-wrap justify-center ${isShaking ? 'animate-shake' : ''}`}>
                 {timeUnits.map((unit) => (
                     <div key={unit} className="flex flex-col items-center m-2">
@@ -113,7 +114,7 @@ const CountdownClock = () => {
                     </div>
                 ))}
             </div>
-            <div className="text-xl sm:text-2xl mb-8">Chris</div>
+
             <button
                 onClick={handleStop}
                 className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-red-500 to-red-600 
