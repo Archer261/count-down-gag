@@ -6,8 +6,10 @@ const CountdownClock = () => {
     const [message, setMessage] = useState('');
     const [isShaking, setIsShaking] = useState(false);
     const [isCountdownFinished, setIsCountdownFinished] = useState(false);
-    const [showFinalMessage, setShowFinalMessage] = useState(false);
+    const [endingPhase, setEndingPhase] = useState(0);
+    const [isLastDay, setIsLastDay] = useState(false);
     const audioContextRef = useRef(null);
+    const lastTickRef = useRef(0);
 
     useEffect(() => {
         audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -19,13 +21,17 @@ const CountdownClock = () => {
     }, []);
 
     const playTick = () => {
-        if (audioContextRef.current) {
-            const oscillator = audioContextRef.current.createOscillator();
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(440, audioContextRef.current.currentTime);
-            oscillator.connect(audioContextRef.current.destination);
-            oscillator.start();
-            oscillator.stop(audioContextRef.current.currentTime + 0.1);
+        const now = Date.now();
+        if (now - lastTickRef.current >= 1000 && !isLastDay) {
+            if (audioContextRef.current) {
+                const oscillator = audioContextRef.current.createOscillator();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(440, audioContextRef.current.currentTime);
+                oscillator.connect(audioContextRef.current.destination);
+                oscillator.start();
+                oscillator.stop(audioContextRef.current.currentTime + 0.1);
+            }
+            lastTickRef.current = now;
         }
     };
 
@@ -35,28 +41,28 @@ const CountdownClock = () => {
             const difference = targetDate.getTime() - now.getTime();
 
             if (difference > 0) {
-                setTimeLeft({
-                    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-                    hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-                    minutes: Math.floor((difference / 1000 / 60) % 60),
-                    seconds: Math.floor((difference / 1000) % 60)
-                });
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+                const minutes = Math.floor((difference / 1000 / 60) % 60);
+                const seconds = Math.floor((difference / 1000) % 60);
+                const milliseconds = Math.floor((difference % 1000) / 10);
+
+                setTimeLeft({ days, hours, minutes, seconds, milliseconds });
+                setIsLastDay(days < 1);
                 playTick();
             } else {
                 clearInterval(timer);
-                setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+                setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, milliseconds: 0 });
                 setIsCountdownFinished(true);
-                setTimeout(() => {
-                    setShowFinalMessage(true);
-                }, 1000);
-                setTimeout(() => {
-                    setShowFinalMessage(false);
-                }, 5000);
+                setEndingPhase(1); // Show first message
+                setTimeout(() => setEndingPhase(2), 5000); // Hide first message
+                setTimeout(() => setEndingPhase(3), 6000); // Show second message
+                setTimeout(() => setEndingPhase(4), 11000); // Hide second message
             }
-        }, 1000);
+        }, 10);
 
         return () => clearInterval(timer);
-    }, [targetDate]);
+    }, [targetDate, isLastDay]);
 
     const handleStop = () => {
         setTargetDate(prevDate => {
@@ -79,20 +85,29 @@ const CountdownClock = () => {
     if (isCountdownFinished) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-black">
-                <div className={`text-white text-sm ${showFinalMessage ? 'opacity-100' : 'opacity-0'} transition-opacity duration-1000`}>
+                <div className={`text-white text-sm ${endingPhase === 1 ? 'opacity-100' : 'opacity-0'} transition-opacity duration-1000 absolute`}>
                     Execute decom protocol alpha...
+                </div>
+                <div className={`text-white text-sm ${endingPhase === 3 ? 'opacity-100' : 'opacity-0'} transition-opacity duration-1000 absolute`}>
+                    Goodbye Chris...
                 </div>
             </div>
         );
     }
 
+    const timeUnits = isLastDay
+        ? ['hours', 'minutes', 'seconds', 'milliseconds']
+        : ['days', 'hours', 'minutes', 'seconds'];
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-black text-neon-green font-mono p-4">
             <div className={`text-4xl sm:text-5xl md:text-6xl font-bold mb-8 flex flex-wrap justify-center ${isShaking ? 'animate-shake' : ''}`}>
-                {['days', 'hours', 'minutes', 'seconds'].map((unit) => (
+                {timeUnits.map((unit) => (
                     <div key={unit} className="flex flex-col items-center m-2">
-                        <span className="bg-gray-900 px-3 py-2 rounded-lg">
-                            {String(timeLeft[unit]).padStart(2, '0')}
+                        <span className={`bg-gray-900 px-3 py-2 rounded-lg ${isLastDay ? 'animate-pulse text-red-500 text-5xl sm:text-6xl md:text-7xl' : ''}`}>
+                            {unit === 'milliseconds'
+                                ? String(timeLeft[unit]).padStart(2, '0')
+                                : String(timeLeft[unit]).padStart(2, '0')}
                         </span>
                         <span className="text-xs sm:text-sm mt-2">{unit.charAt(0).toUpperCase() + unit.slice(1)}</span>
                     </div>
