@@ -5,6 +5,8 @@ const CountdownClock = () => {
     const [timeLeft, setTimeLeft] = useState(null);
     const [message, setMessage] = useState('');
     const [isShaking, setIsShaking] = useState(false);
+    const [isCountdownFinished, setIsCountdownFinished] = useState(false);
+    const [showFinalMessage, setShowFinalMessage] = useState(false);
     const audioContextRef = useRef(null);
 
     useEffect(() => {
@@ -43,6 +45,13 @@ const CountdownClock = () => {
             } else {
                 clearInterval(timer);
                 setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+                setIsCountdownFinished(true);
+                setTimeout(() => {
+                    setShowFinalMessage(true);
+                }, 1000);
+                setTimeout(() => {
+                    setShowFinalMessage(false);
+                }, 5000);
             }
         }, 1000);
 
@@ -65,6 +74,16 @@ const CountdownClock = () => {
 
     if (timeLeft === null) {
         return <div className="text-neon-green text-4xl">Loading...</div>;
+    }
+
+    if (isCountdownFinished) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-black">
+                <div className={`text-white text-sm ${showFinalMessage ? 'opacity-100' : 'opacity-0'} transition-opacity duration-1000`}>
+                    Execute decom protocol alpha...
+                </div>
+            </div>
+        );
     }
 
     return (
